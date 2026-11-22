@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -e
+
+APPDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export WINEDEBUG=-all
+export WINEARCH=win64
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export WINEPREFIX="${WINEPREFIX:-$XDG_DATA_HOME/DHLabel/wineprefix}"
+export PATH="$APPDIR/usr/share/wine/bin:$PATH"
+export LD_LIBRARY_PATH="$APPDIR/usr/share/wine/lib:${LD_LIBRARY_PATH:-}"
+
+mkdir -p "$WINEPREFIX"
+if [ ! -f "$WINEPREFIX/system.reg" ]; then
+    "$APPDIR/usr/share/wine/bin/wineboot" --init >/dev/null 2>&1 || true
+fi
+
+DHLABEL_EXE="$(find "$APPDIR/usr/share/dhlabel" -type f -iname 'DHLabel.exe' -print -quit)"
+[ -n "$DHLABEL_EXE" ] || exit 1
+
+args=()
+for arg in "$@"; do
+    if [ -e "$arg" ]; then
+        converted="$("$APPDIR/usr/share/wine/bin/winepath" -w "$(cd "$(dirname "$arg")" && pwd)/$(basename "$arg")" 2>/dev/null || true)"
+        [ -n "$converted" ] && arg="$converted"
+    fi
+    args+=("$arg")
+done
+
+exec "$APPDIR/usr/share/wine/bin/wine" "$DHLABEL_EXE" "${args[@]}"

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=DHLabel
+Comment=Convert DHL parcel labels to A6 labels
+Icon=DHLabel
+Type=Application
+Categories=Office;
+Terminal=false
+MimeType=application/pdf;
